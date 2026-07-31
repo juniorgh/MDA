@@ -1,0 +1,126 @@
+.profissao-card {
+
+    background: #FFF;
+    border: .1rem solid #E2E8F0;
+    border-radius: 1.4rem;
+    padding: 1.6rem;
+    box-shadow:
+    0 .1rem .2rem rgba(15,23,42,.05);
+    transition: .2s;
+}
+
+.profissao-card:hover {
+    transform: translateY(-.2rem);
+    border-color: #CBD5E1;
+    box-shadow:
+    0 .8rem 2rem rgba(15,23,42,.08);
+}
+
+.profissao-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.profissao-card__profile {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+}
+
+.profissao-card__avatar img {
+
+    width: 5.6rem;
+    height: 5.6rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profissao-card__info h3 {
+
+    margin: 0;
+    font-size: 1.7rem;
+    color: #0F172A;
+}
+
+.profissao-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: .8rem;
+}
+
+.badge {
+
+    padding: .4rem .8rem;
+    background: #F1F5F9;
+    border-radius: 10rem;
+    font-size: 1.1rem;
+}
+
+.badge--success {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.profissao-card__body {
+    margin-top: 1.4rem;
+}
+
+.profissao-card__body p {
+    margin: 0;
+    line-height: 1.6;
+    color: #64748B;
+}
+
+.profissao-card__metrics {
+    margin-top: 1.6rem;
+    display: grid;
+    grid-template-columns:
+    repeat(4,1fr);
+    gap: 1rem;
+}
+
+.metric {
+    background: #F8FAFC;
+    border-radius: 1rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.metric strong {
+    display: block;
+    margin-top: .4rem;
+    font-size: 1.8rem;
+}
+
+.metric small {
+    color: #64748B;
+}
+
+.profissao-card__footer {
+    margin-top: 1.6rem;
+    padding-top: 1.4rem;
+    border-top:
+    .1rem solid #E2E8F0;
+    display: flex;
+    gap: 1rem;
+}
+
+.action {
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.action--view {
+    color: #2563EB;
+}
+
+.action--edit {
+    color: #F59E0B;
+}
+
+.action--delete {
+    color: #EF4444;
+}

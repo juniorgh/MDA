@@ -1,0 +1,104 @@
+html body{
+	font-family: "PT Sans";
+	font-size: 62.5%EM;
+	margin: 0;
+	padding: 0;
+    background-color: #F5F7FA;
+}
+
+
+.app-public-content {
+	margin-top: 40px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+/*	background-color: beige;*/
+	padding: 1em 0;
+}
+
+.app-public-footer {
+	background-color: gold;
+	height: 2.8em;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center	;
+}
+
+.table {
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 3.0em;
+}
+
+.table-head-th-td {
+	border: 1px solid black;
+}
+
+.table-head {
+	padding: 1.0em;
+}
+
+.informativo-cursos {
+    border-collapse: collapse;
+    background-color: white;
+    width: 80%;
+    margin: 0 auto;         
+    text-align: center;
+    border: 1px solid black;
+}
+
+.agenda-table-thead {
+    background-color: #525252;
+    color: #ffcc00;
+}
+
+.agenda-table-th {
+    padding: 16px;
+    border: 1px solid; #ccc;
+}
+
+td {
+    border: 1px solid black;
+    padding: 8px;
+}
+
+.agenda-table-cap {
+    text-align: right;
+    padding: 0 0 0.4em 0;
+}
+
+.agenda-table-cap__link {
+    margin: 0;
+    padding: 0 0.6em;
+/*    background-color: #ffcc00;*/
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    color: #ffcc00;
+}
+
+.index-table-td__show {
+    text-decoration: none;
+    color: #C7FF3E;
+    padding: 0.3em 0.4em;
+    border: 2px solid #C7FF3E;
+}
+
+.index-table-td__edit {
+    text-decoration: none;
+    color: #ffcc00;
+    padding: 0.3em 0.4em;
+    border: 2px solid #ffcc00;
+}
+
+.form-btn-exc__btn {
+    all: unset;
+    cursor: pointer;
+    padding: 0.69em 0.4em;
+    color: red;
+    font-size: 0.7em;
+    border: 1px solid red;
+    transition: background-color 0.3s;
+}

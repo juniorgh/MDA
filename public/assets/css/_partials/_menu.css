@@ -1,0 +1,22 @@
+.menu-nav {
+	background-color: gold;
+}
+
+.menu-nav-list {
+	display: flex;
+	flex-direction: row;
+	gap: 0.8em;
+/*	border: 1px solid black;*/
+	padding: 0.8em 3.9em;
+	justify-content: end;
+	list-style: none;
+}
+
+.menu-nav-list-item__act {
+	color: white;
+	text-decoration: none;
+	font-size: 1.1em;
+	padding: 0.2em 0.6em;
+	background-color: black;
+	border-radius: 5px;
+}
