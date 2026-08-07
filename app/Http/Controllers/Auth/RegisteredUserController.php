@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use App\Models\Contratante;
 
 class RegisteredUserController extends Controller
 {
@@ -20,7 +21,12 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $log = '';
+        if(!Auth::id()) {
+            $log = false;
+        }
+
+        return view('auth.register',['log' => $log]);
     }
 
     /**
@@ -30,22 +36,50 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $user = new User();
+        $contratante = new Contratante();
+        $user = new User(); 
 
-        // $request->validate($user->rules(),$user->feedback());
+        
+        $request->validate($user->rules(),$user->feedback());
 
-        $user->create([
-            'name' => $request->name,
-            'sobrenome' => $request->sobrenome,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'user_group_id' => 2,
-        ]);
+        // revisar validate
+        // $request->validate($contratante->rules($contratante),$contratante->feedback());
 
-        event(new Registered($user));
+        $user->user_group_id = 3;
 
-        Auth::login($user);
+        $user->name = $request->name;
+        $user->sobrenome = $request->sobrenome;
+        $user->password = bcrypt($request->password);
 
-        return redirect(route('dashboard.index', absolute: false));
+        if($request->email_validador === $request->email)
+        {
+            $user->email = $request->email;            
+        } else {
+            echo 'verifique o email';
+            exit;
+        }
+
+        $user->save();
+
+        $contratante->cpf = $request->cpf;
+        $contratante->telefone = $request->telefone;
+        $contratante->user_id = $user->id;
+
+        $contratante->save();
+
+
+        // $user->create([
+        //     'name' => $request->name,
+        //     'sobrenome' => $request->sobrenome,
+        //     'email' => $request->email,
+        //     'password' => Hash::make($request->password),
+        //     'user_group_id' => 2,
+        // ]);
+
+        // event(new Registered($user));
+
+        // Auth::login($user);
+
+        return redirect(route('login'));
     }
 }

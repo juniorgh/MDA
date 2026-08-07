@@ -25,7 +25,8 @@ class EnderecoController extends Controller
      */
     public function create()
     {
-        return view('endereco.create',['user_id' => Auth::id()]);
+        return view('endereco.create',
+            ['user_id' => Auth::id()]);
     }
 
     /**
@@ -38,7 +39,6 @@ class EnderecoController extends Controller
         $endereco = new Endereco();
 
         $endereco->user_id = Auth::id();
-        $endereco->colaborador_id = $colaborador->id;
         $endereco->logradouro = $request->logradouro;
         $endereco->numero = $request->numero;
         $endereco->complemento = $request->complemento;
@@ -49,7 +49,15 @@ class EnderecoController extends Controller
 
         $endereco->save();
 
-        return redirect()->route('endereco.index');
+        $userType = User::returnUserType();
+
+        if($userType == 1) {
+            return 'configurar';
+        } else if ($userType == 2) {
+            return redirect()->route('colaborador.index');;
+        } else {
+            return redirect()->route('contratante.index');
+        }        
     }
 
     /**
@@ -65,7 +73,12 @@ class EnderecoController extends Controller
      */
     public function edit(Endereco $endereco)
     {
-        //
+        return view(
+            'endereco.edit',
+            [
+                'endereco' => $endereco
+            ]
+        );
     }
 
     /**

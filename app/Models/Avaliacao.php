@@ -11,4 +11,10 @@ class Avaliacao extends Model
     use HasFactory;
 
     protected $table = 'avaliacoes';
+
+    protected $fillable = [
+        'colaborador_id',
+        'nota',
+        'comentario'
+    ];
 }

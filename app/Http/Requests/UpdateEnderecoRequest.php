@@ -12,7 +12,7 @@ class UpdateEnderecoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**

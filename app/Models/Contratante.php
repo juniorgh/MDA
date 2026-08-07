@@ -30,6 +30,19 @@ class Contratante extends Model
         ];
 
     }
+
+    //relacionamentos
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function endereco() {
+
+        return $this->hasOne(Endereco::class);
+    }
+    
     public function feedback() {
         return [
             'user_id.required' => 'O usuário é obrigatório.',

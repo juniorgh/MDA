@@ -4,7 +4,7 @@
 <main class="profile-page">
 
     <div class="breadcrumb">
-        <a href="#">Colaboradores</a>
+        <a href="#">Contratante</a>
         <span>/</span>
         <strong>Perfil</strong>
     </div>
@@ -18,31 +18,33 @@
 
                 <div class="profile-info">
                     <span class="status active">Ativo</span>
-                    <h1> {{ $colaborador->name }} {{ $colaborador->sobrenome }}</h1>
-                    <p> {{ $colaborador->profissao->nome }} </p>
+                    <h1> {{ $contratante->name }} {{ $contratante->sobrenome }}</h1>
+                    <p> Perfil verificado • Membro desde Julho de 2026 </p>
                     <div class="profile-meta">
-                        <span>📍 {{ $colaborador->endereco->cidade }} {{ $colaborador->endereco->estado }} </span>
+                        <span>📍 {{ $contratante->endereco->cidade }} {{ $contratante->endereco->estado }} </span>
                         <span>⭐ 4.9</span>
-                        <span>127 avaliações</span>
-                        <span>Membro desde {{ $colaborador->user->created_at->format('m/Y') }}</span>
+                        <span>📋 127 avaliações</span>
+                        {{-- <span>Membro desde {{ $colaborador->user->created_at->format('m/Y') }}</span> --}}
                     </div>
                 </div>
             </div>
 
         <div class="profile-actions">
-            <a href="{{ route('colaborador.edit',['colaborador' => $colaborador->id ]) }}" class="btn-gold">Editar Perfil</a>
+            <a href="{{ route('contratante.edit',['contratante' => $contratante->contratante->id ]) }}" class="btn-gold">Editar Perfil</a>
             <a href="#" class="btn-dark">Bloquear</a>
         </div>
 
     </section>  
 
     <section class="tabs">
-        <a href="#" class="active">Visão Geral</a>
-        <a href="{{ route('profissao.index') }}">Profissões</a>
-        <a href="#">Qualificações</a>
         <a href="#">Serviços</a>
         <a href="#">Avaliações</a>
-        <a href="#">Documentos</a>
+        {{-- <a href="{{ route('endereco.create') }}"> Editar endereçamento </a> --}}
+        @if(!empty($contratante->endereco->id))
+            <a href="{{ route('endereco.edit', ['endereco' => $contratante->endereco->id ]) }}"> Editar endereçamento </a>
+        @else
+            <a href="{{ route('endereco.create') }}"> Cadastrar endereçamento </a>
+        @endif
     </section>
 
     <section class="stats-grid">
@@ -60,9 +62,9 @@
 
         <div class="stat-card">
             <span>Qualificações</span>
-            <strong> {{ $colaborador->qualificacoes->count() }} </strong>
+{{--             <strong> {{ $colaborador->qualificacoes->count() }} </strong>
             <small> {{ $colaborador->qualificacoes->count() }} com arquivo</small>
-        </div>
+ --}}   </div>
 
         <div class="stat-card">
             <span>Taxa de aprovação</span>
@@ -77,7 +79,7 @@
 
             <div class="card">
                 <div class="card-head">
-                    <h2>Sobre o colaborador</h2>
+                    <h2>Sobre o colaborador (incluir mais um campo de descrição) </h2>
                 </div>
 
                 <p>
@@ -86,8 +88,8 @@
                     Atua com foco em segurança, pontualidade e acabamento.
                 </p>
 
-                <div class="tags">
-                        @foreach($colaborador->qualificacoes as $qualidades_tags)
+                <div class="tags">+ Adicionar
+{{--                         @foreach($colaborador->qualificacoes as $qualidades_tags)
 
                                 @php
                                 $aux_tag = explode(" ", $qualidades_tags->titulo);                            
@@ -97,36 +99,13 @@
                             
                                 <span> {{ $tag }} </span>
                         @endforeach
-                </div>
+ --}}                </div>
             </div>
-
-            <div class="card">
-                <div class="card-head">
-
-                    <h2> Profissão </h2>
-                </div>
-
-                <div class="list-item">
-                    <div>
-                        <strong>{{ $colaborador->profissao->nome }}</strong>
-                    </div>
-                    <span class="pill">Ativo</span>
-                </div>
-            </div>
-
             
-                <div class="card">
-                    @foreach($colaborador->qualificacoes as $qualificacao)
-                    <div class="card-head">
-                        <h2> {{ $qualificacao->titulo }} </h2>
-                        <a href="#"> + Adicionar </a>
-                    </div>
-                    @endforeach
-                </div>
 
             <div class="card">
                 <div class="card-head">
-                    <h2>Últimos serviços</h2>
+                    <h2>Últimos serviços solicitados</h2>
                     <a href="#">Ver todos</a>
                 </div>
 
@@ -154,27 +133,27 @@
 
                 <div class="info-row">
                     <span>CPF</span>
-                    <strong> {{ $colaborador->cpf }}</strong>
+                    <strong> {{ $contratante->contratante->cpf }}</strong>
                 </div>
 
                 <div class="info-row">
                     <span>Telefone</span>
-                    <strong> {{ $colaborador->telefone }} </strong>
+                    <strong> {{ $contratante->contratante->telefone }} </strong>
                 </div>
 
                 <div class="info-row">
                     <span>E-mail</span>
-                    <strong>{{ $colaborador->user->email }}</strong>
+                    <strong>{{ $contratante->email }}</strong>
                 </div>
 
-                <div class="info-row">
-                    <span>Pix</span>
-                    @if($pix_bool == true)
-                        <strong> Cadastrado </strong>
-                    @else
-                        <strong> Não cadastrado </strong>
-                    @endif
-                </div>
+                {{-- <div class="info-row"> --}}
+                    {{-- <span>Pix</span> --}}
+                    {{-- @if($pix_bool == true) --}}
+                        {{-- <strong> Cadastrado </strong> --}}
+                    {{-- @else --}}
+                        {{-- <strong> Não cadastrado </strong> --}}
+                    {{-- @endif --}}
+                {{-- </div> --}}
 
                 <div class="info-row">
                     <span>Último acesso</span>
@@ -225,7 +204,3 @@
 </main>
 
 @endsection
-
-
-
-

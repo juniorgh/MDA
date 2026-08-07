@@ -34,6 +34,36 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
+
+    //relacionamentos
+
+    public function endereco() {
+
+        return $this->hasOne(Endereco::class);
+    }
+
+    public function colaborador() {
+
+        return $this->hasOne(Colaborador::class);
+    }
+
+    public function contratante() {
+
+        return $this->hasOne(Contratante::class);
+    }
+
+    public function profissao()
+    {
+        return $this->belongsTo(Profissao::class);
+    }
+
+    public function qualificacoes()
+    {
+        return $this->hasMany(Qualidade::class);
+    }
+
+
     protected function casts(): array
     {
         return [
@@ -42,11 +72,9 @@ class User extends Authenticatable
         ];
     }
 
-    public static function userType(){
+    public static function userType() {
         $userId = Auth::id();
-
         $user = User::find($userId);
-
         return $user->user_group_id;
     }
 

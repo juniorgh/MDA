@@ -2,5 +2,6 @@
 
 @section('content')
     <x-endereco.create-edit 
+    :endereco="$endereco" 
     />
 @endsection

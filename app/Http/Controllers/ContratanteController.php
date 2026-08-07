@@ -18,8 +18,16 @@ class ContratanteController extends Controller
     {
         $userId = Auth::id();
 
-        $contratantes = Contratante::all();
-        return view('contratante.index',['contratantes' => $contratantes]);
+        $contratante = User::with('endereco','contratante')->where('id',$userId)->first();
+
+        $user = User::find($userId);
+
+        return view('contratante.index-contratante',
+            [
+                'contratante' => $contratante,
+                'user' => $user
+            ],
+        );
     }
 
     /**
@@ -27,7 +35,7 @@ class ContratanteController extends Controller
      */
     public function create(Request $request)
     {
-        if($request->id == null)
+        if($request->id == null) 
         {
             return view('contratante.create');    
         } else {
@@ -44,16 +52,17 @@ class ContratanteController extends Controller
     {
         $contratante = new Contratante();
         $user = new User(); 
-
+        $userId = Auth::id();
         $request->validate($user->rules(),$user->feedback());
-        
-        $request->validate($contratante->rules($contratante),$contratante->feedback());
-        
+
+        // revisar validate
+        // $request->validate($contratante->rules($contratante),$contratante->feedback());
+
+        $user->user_group_id = $user->userType();
         $user->name = $request->name;
         $user->sobrenome = $request->sobrenome;
         $user->password = bcrypt($request->password);
 
-        
         if($request->email_validador === $request->email)
         {
             $user->email = $request->email;            
@@ -66,8 +75,7 @@ class ContratanteController extends Controller
 
         $contratante->cpf = $request->cpf;
         $contratante->telefone = $request->telefone;
-        $contratante->chave_pix = $request->chave_pix;
-        $contratante->user_id = $user->id;
+        $contratante->user_id = $userId;
 
         $contratante->save();
 
@@ -85,9 +93,21 @@ class ContratanteController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Contratante $contratante)
+    public function edit($id)
     {
-        //
+
+        $contratante = Contratante::find($id);
+
+        $log = true;
+
+        return view(
+            'contratante.edit',
+            [
+                'contratante' => $contratante,
+                'log' => $log
+            ]
+        );
+
     }
 
     /**
@@ -95,7 +115,28 @@ class ContratanteController extends Controller
      */
     public function update(UpdateContratanteRequest $request, Contratante $contratante)
     {
-        //
+        $userId = Auth::id();
+
+        $user = User::find($userId);
+
+        $user->update([
+            'name' => $request->name,
+            'sobrenome' => $request->sobrenome,
+            'email' => $request->email,
+            'password' => $request->password,
+            'user_group_id' => User::returnUserType()
+        ]);
+
+        $contratante->update([
+            'user_id' => $userId,
+            'cpf' => $request->cpf,
+            'telefone' => $request->telefone,
+            'data_nascimento' => $request->data_nascimento,
+            'foto' => $request->foto,
+            'ativo' => 1
+        ]);
+
+        return redirect()->route('contratante.index');
     }
 
     /**

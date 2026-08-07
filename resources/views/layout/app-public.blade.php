@@ -34,7 +34,13 @@
 </head>
 <body>
 	
-	@include('_partials.menu')
+	@php
+		$log = Auth::id();
+	@endphp
+
+	@if(!empty($log))
+		@include('_partials.menu')
+	@endif
 	
 
 	<header class="app-public-header">

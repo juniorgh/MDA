@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Profissao;
 use App\Models\Utilidade;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\StoreColaboradorRequest;
     
 use App\View\Components\Colaborador\ColaboradorCreateEditComponent;
 
@@ -16,11 +17,12 @@ class ColaboradorController extends Controller
 {
     public function index()
     {
-        $colaboradores = Colaborador::with('user','qualificacoes','profissao','endereco')->get();
 
-        $colaboradores->all();
+        $colaboradores = User::with('qualificacoes','profissao','endereco')->get();
 
         $colaboradoresAux = array();
+
+
 
         foreach ($colaboradores as $colaborador)
         {
@@ -31,17 +33,21 @@ class ColaboradorController extends Controller
             $colaboradoresAux[] = $colaborador;
         }
 
-        $colaboradores = $colaboradoresAux;
+        $colaboradores = $colaboradoresAux; 
 
-        $colaborador = User::colaboradorUserId();
+        $userId = Auth::id();
 
-        $colaborador->with('user','qualificacoes','profissao','endereco');
+
+
+        $colaborador = User::with('colaborador','qualificacoes','profissao','endereco')
+        ->where('id',$userId)->first();
 
         $pix_bool = false;
 
         if(!empty($colaborador->chave_pix)) {
             $pix_bool = true;
         }
+
 
         return match (User::returnUserType())
         {
@@ -52,7 +58,7 @@ class ColaboradorController extends Controller
         };
     }
 
-    public function create(Request $request)
+    public function create()
     {
         $profissoes = Profissao::all();
 
@@ -86,7 +92,7 @@ class ColaboradorController extends Controller
             exit;
         }
 
-        $user->save();
+        // $user->save();
 
         $colaborador->cpf = $request->cpf;
         $colaborador->telefone = $request->telefone;
@@ -98,7 +104,7 @@ class ColaboradorController extends Controller
         return redirect()->route('colaborador.index')->with('colaborador_create_success,Colaborador cadastrado com sucesso.');
     }
 
-    public function show(colaborador $colaborador){
+    public function show(ShowColaboradorRequest $colaborador){
 
         return match (User::userType()) {
             1 => view('colaborador.index', compact('colaborador')),
@@ -109,7 +115,7 @@ class ColaboradorController extends Controller
 
     }
 
-    public function edit(Colaborador $colaborador)
+    public function edit(EditColaboradorRequest $colaborador)
     {
         $profissoes = Profissao::all();
         // new ColaboradorCreateEditComponent($colaborador,$profissoes);
@@ -124,7 +130,7 @@ class ColaboradorController extends Controller
 
     }
 
-    public function update(Request $request, Colaborador $colaborador) {
+    public function update(UpdateColaboradorRequest $request, Colaborador $colaborador) {
         $colaborador = Colaborador::with('user')->find($request->id);
         $user = User::find($request->user_id);
 

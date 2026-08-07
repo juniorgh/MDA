@@ -1,8 +1,13 @@
+
 @if(!empty($contratante->id))
     <form class="crud-create-form" action="{{ route('contratante.update',['contratante' => $contratante->id ]) }}" method="POST">
         @method('PUT')
 @else
-    <form class="crud-create-form" action="{{ route('contratante.store') }}" method="POST">
+    @if($log == false)
+        <form method="POST" action="{{ route('register') }}">
+    @else
+        <form class="crud-create-form" action="{{ route('contratante.store') }}" method="POST">
+    @endif    
 @endif
     @csrf
     <fieldset class="crud-create-fset">
@@ -39,7 +44,7 @@
         {{ $errors->has('email') ? $errors->first('email') : ''}}
 
         <label class="crud-create__lb" for="password">Password</label>
-        <input class="crud-create__txt" type="password" name="password" placeholder="Digite sua senha">
+        <input class="crud-create__txt" type="password" value="{{ $contratante->user->password ?? old('password') }}" name="password" placeholder="Digite sua senha">
 
         {{ $errors->has('password') ? $errors->first('password') : ''}}
 
@@ -47,7 +52,7 @@
 
         @if(!empty($contratante->id))
             <label class="crud-create__lb" for="password_confirmation">Password</label>
-            <input class="crud-create__txt" type="password" name="password_confirmation" id="password_confirmation" value="{{ (old('password_confirmation') ?? '') }}" placeholder="Digite novamente sua senha novamente">
+            <input class="crud-create__txt" type="password" name="password_confirmation" id="password_confirmation" value="{{ $contratante->user->password ?? old('password') }}" placeholder="Digite novamente sua senha novamente">
 
             {{ $errors->has('password_confirmation') ? $errors->first('password_confirmation') : ''}}
         @endif
@@ -57,8 +62,8 @@
 
         {{ $errors->has('data_nascimento') ? $errors->first('data_nascimento') : ''}}        
 
-        <label class="crud-create__lb" for="foto">Chave Pix</label>
-        <input class="crud-create__txt" type="text" name="chavepix" id="foto" value="{{ $contratante->foto ?? old('foto') }}" placeholder="Digite aqui sua chave PIX">
+        <label class="crud-create__lb" for="foto"> Foto </label>
+        <input class="crud-create__txt" type="text" name="foto" id="foto" value="{{ $contratante->foto ?? old('foto') }}" placeholder="Digite aqui sua chave PIX">
 
         {{ $errors->has('foto') ? $errors->first('foto') : ''}}
 

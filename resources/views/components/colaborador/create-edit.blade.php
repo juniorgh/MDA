@@ -1,11 +1,10 @@
 @if(!empty($colaborador->id))
     <form class="crud-create-form" action="{{ route('colaborador.update',['colaborador' => $colaborador->id ]) }}" method="POST">
-        @csrf
-        @method('PUT')
+     @method('PUT')
 @else
     <form class="crud-create-form" action="{{ route('colaborador.store') }}" method="POST">
-
 @endif
+    @csrf
     <fieldset class="crud-create-fset">
         <legend class="crud-create-leg">Dados Pessoais</legend>
 

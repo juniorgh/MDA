@@ -74,7 +74,7 @@
 
                         <div>
                             <div class="mda-name">
-                                <h3> {{ $colaborador->user->name . ' ' . $colaborador->user->sobrenome }}</h3>
+                                <h3> {{ $colaborador->name . ' ' . $colaborador->sobrenome }}</h3>
                                 <span class="mda-badge mda-active">Ativo</span>
                             </div>
 

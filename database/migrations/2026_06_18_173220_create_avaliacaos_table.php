@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('avaliacaos', function (Blueprint $table)
+        Schema::create('avaliacoes', function (Blueprint $table)
         {
             $table->id();
 
@@ -32,7 +32,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('avaliacaos', function(Blueprint $table)
+        Schema::table('avaliacoes', function(Blueprint $table)
         {
             $table->dropForeign(['colaborador_id']);
             $table->dropColumn('colaborador_id');

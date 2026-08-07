@@ -13,7 +13,7 @@ class ColaboradorPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,7 @@ class ColaboradorPolicy
      */
     public function view(User $user, Colaborador $colaborador): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,7 +29,7 @@ class ColaboradorPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class ColaboradorPolicy
      */
     public function update(User $user, Colaborador $colaborador): bool
     {
-        return $user->id === $colaborador->user_id;
+        // return $user->id === $colaborador->user_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class ColaboradorPolicy
      */
     public function delete(User $user, Colaborador $colaborador): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -53,7 +53,7 @@ class ColaboradorPolicy
      */
     public function restore(User $user, Colaborador $colaborador): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -61,6 +61,6 @@ class ColaboradorPolicy
      */
     public function forceDelete(User $user, Colaborador $colaborador): bool
     {
-        return false;
+        return true;
     }
 }
