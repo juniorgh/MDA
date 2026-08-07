@@ -92,7 +92,7 @@ class ColaboradorController extends Controller
             exit;
         }
 
-        // $user->save();
+        $user->save();
 
         $colaborador->cpf = $request->cpf;
         $colaborador->telefone = $request->telefone;

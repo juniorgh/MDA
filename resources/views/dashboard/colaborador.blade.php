@@ -16,17 +16,26 @@
     </header>
 
     <section class="painel-acoes">
+        <h2>Informações obrigatórias</h2>
+        <p> Para plataforma funcionar perfeitamente, é necessário complementar informações</p>
+
+
+        @foreach($cadastrosFaltantes as $faltantes)
+            <div class="acao">
+                <div class="icone">📋</div>
+                <div>
+                    <strong> {{ $faltantes['slug'] }} </strong>
+                    <small> {{ $faltantes['mensagem'] }}</small>
+                </div>
+                <a href="{{ route($faltantes['classe']) }}" class="btn gold"> Add {{ $faltantes['slug'] }} </a>
+            </div>
+        @endforeach
+    </section>
+
+    <section class="painel-acoes">
         <h2>Central de ações</h2>
         <p>Prioridades rápidas para manter seu perfil ativo e competitivo.</p>
 
-        <div class="acao">
-            <div class="icone">📋</div>
-            <div>
-                <strong>2 solicitações aguardando resposta</strong>
-                <small>Responda rápido para não perder oportunidades.</small>
-            </div>
-            <a href="#" class="btn gold">Responder</a>
-        </div>
 
         <div class="acao">
             <div class="icone">👤</div>
