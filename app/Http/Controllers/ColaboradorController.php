@@ -18,13 +18,13 @@ class ColaboradorController extends Controller
     public function index()
     {
 
-        $colaboradores = User::with('qualificacoes','profissao','endereco')->get();
+        $users = User::with('qualificacoes','endereco')->get();
+        $colaboradores = Colaborador::with('profissao')->get();
 
         $colaboradoresAux = array();
 
 
-
-        foreach ($colaboradores as $colaborador)
+        foreach ($users as $colaborador)
         {
             $utilidade = new Utilidade();
             $colaborador['cpf'] = $utilidade->mascaraCPF($colaborador['cpf']);
@@ -33,14 +33,12 @@ class ColaboradorController extends Controller
             $colaboradoresAux[] = $colaborador;
         }
 
-        $colaboradores = $colaboradoresAux; 
+        $user = $colaboradoresAux; 
 
         $userId = Auth::id();
 
-
-
-        $colaborador = User::with('colaborador','qualificacoes','profissao','endereco')
-        ->where('id',$userId)->first();
+        $user = User::with('colaborador','qualificacoes','endereco')->find($userId);
+        $colaborador = Colaborador::with('profissao')->where('user_id',$userId)->first();
 
         $pix_bool = false;
 
@@ -48,11 +46,14 @@ class ColaboradorController extends Controller
             $pix_bool = true;
         }
 
-
         return match (User::returnUserType())
         {
-            1 => view('colaborador.index',['colaboradores' => $colaboradores, 'pix_bool' => $pix_bool]),
-            2 => view('colaborador.index-colaborador',['colaborador' => $colaborador, 'pix_bool' => $pix_bool]),
+            1 => view('colaborador.index',['users' => $users, 'pix_bool' => $pix_bool]),
+            2 => view('colaborador.index-colaborador',[
+                'user' => $user, 
+                'pix_bool' => $pix_bool,
+                'colaborador' => $colaborador
+            ]),
 
             default => abort(403),
         };
@@ -72,36 +73,27 @@ class ColaboradorController extends Controller
 
     public function store(Request $request)
     {
+        $userId = Auth::id();
+        
         $colaborador = new Colaborador();
-        $user = new User();
+        $user = User::find($userId);
+
+        $user->update([
+            $user->user_group_id => 2
+        ]);
 
         $request->validate($colaborador->rules(''),$colaborador->feedback());
-        $request->validate($user->rules(),$user->feedback());
-    
-        
-        $user->name = $request->name;
-        $user->sobrenome = $request->sobrenome;
-        $user->password = bcrypt($request->password);
-        $user->user_group_id = 2;
-
-        if($request->email_validador === $request->email)
-        {
-            $user->email = $request->email;            
-        } else {
-            echo 'verifique o email';
-            exit;
-        }
-
-        $user->save();
 
         $colaborador->cpf = $request->cpf;
         $colaborador->telefone = $request->telefone;
         $colaborador->chave_pix = $request->chave_pix;
         $colaborador->user_id = $user->id;
+        $colaborador->profissao_id = $request->profissao_id;
 
-        $colaborador->save();
 
-        return redirect()->route('colaborador.index')->with('colaborador_create_success,Colaborador cadastrado com sucesso.');
+        $test = $colaborador->save();
+
+        return redirect()->route('colaborador.index')->with('colaborador_create_success, colaborador cadastrado com sucesso.');
     }
 
     public function show(ShowColaboradorRequest $colaborador){

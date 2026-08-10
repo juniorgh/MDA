@@ -43,19 +43,14 @@ class User extends Authenticatable
         return $this->hasOne(Endereco::class);
     }
 
-    public function colaborador() {
-
+    public function colaborador()
+    {
         return $this->hasOne(Colaborador::class);
     }
 
     public function contratante() {
 
         return $this->hasOne(Contratante::class);
-    }
-
-    public function profissao()
-    {
-        return $this->hasOne(Profissao::class);
     }
 
     public function qualificacoes()
@@ -95,6 +90,77 @@ class User extends Authenticatable
         } else {
             return 3;
         }   
+    }
+
+    public function verificadorDeCadastrosContratanteColaborador() {
+        $cadastrosFaltantes = [];
+
+        $userType = User::returnUserType();
+        $user_id = Auth::id();
+        $user = User::with('endereco','contratante','colaborador','qualificacoes')->find($user_id);
+
+        if(!$user->endereco)
+        {
+            $msg = [  'slug' => 'Endereço',
+                      'mensagem' => 'Favor cadastrar seu endereçamento',
+                      'classe' => 'endereco.create'
+                    ];
+
+            array_push($cadastrosFaltantes, $msg);
+        }
+
+
+        if(!$user->contratante)
+        {
+            if($userType == 3)
+            {
+                $msg = 
+                [  
+                    'slug' => 'Contratante',
+                    'mensagem' => 'Favor cadastrar os dados para poder contratar serviços',
+                    'classe' => 'contratante.create'
+                ];
+
+                array_push($cadastrosFaltantes, $msg);
+            }
+        }
+
+        if(!$user->colaborador)
+        {
+            if($userType == 2)
+            {
+                $msg = 
+                [  
+                    'slug' => 'Colaborador',
+                    'mensagem' => 'Favor cadastrar os dados complementares para ativar sua plataforma completamente',
+                    'classe' => 'endereco.create'
+                ];
+
+                array_push($cadastrosFaltantes, $msg);
+            }
+        }
+
+        if(!$user->qualificacoes)
+        {
+            if($userType == 2)
+            {
+                $msg = 
+                [
+                    'slug' => 'Qualificações',
+                    'mensagem' => 'Favor cadastrar seus cursos, para compor sua grade curricular',
+                    'classe' => 'endereco.create'
+                ];
+
+                array_push($cadastrosFaltantes, $msg);
+            }
+        }
+
+        $arr_retorno = [];
+
+        array_push($arr_retorno,$cadastrosFaltantes);
+        array_push($arr_retorno,$user);
+
+        return $arr_retorno;
     }
 
     public function rules() {

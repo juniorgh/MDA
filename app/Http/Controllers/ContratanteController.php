@@ -53,25 +53,9 @@ class ContratanteController extends Controller
         $contratante = new Contratante();
         $user = new User(); 
         $userId = Auth::id();
-        $request->validate($user->rules(),$user->feedback());
 
         // revisar validate
         // $request->validate($contratante->rules($contratante),$contratante->feedback());
-
-        $user->user_group_id = $user->userType();
-        $user->name = $request->name;
-        $user->sobrenome = $request->sobrenome;
-        $user->password = bcrypt($request->password);
-
-        if($request->email_validador === $request->email)
-        {
-            $user->email = $request->email;            
-        } else {
-            echo 'verifique o email';
-            exit;
-        }
-
-        $user->save();
 
         $contratante->cpf = $request->cpf;
         $contratante->telefone = $request->telefone;

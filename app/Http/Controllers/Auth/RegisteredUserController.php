@@ -42,43 +42,23 @@ class RegisteredUserController extends Controller
         
         $request->validate($user->rules(),$user->feedback());
 
-        // revisar validate
-        // $request->validate($contratante->rules($contratante),$contratante->feedback());
+            // revisar validate
+            // $request->validate($contratante->rules($contratante),$contratante->feedback());
 
-        $user->user_group_id = 3;
-
-        $user->name = $request->name;
-        $user->sobrenome = $request->sobrenome;
-        $user->password = bcrypt($request->password);
-
-        if($request->email_validador === $request->email)
-        {
-            $user->email = $request->email;            
-        } else {
-            echo 'verifique o email';
-            exit;
-        }
-
-        $user->save();
-
-        $contratante->cpf = $request->cpf;
-        $contratante->telefone = $request->telefone;
-        $contratante->user_id = $user->id;
-
-        $contratante->save();
+        // $user->save();
 
 
-        // $user->create([
-        //     'name' => $request->name,
-        //     'sobrenome' => $request->sobrenome,
-        //     'email' => $request->email,
-        //     'password' => Hash::make($request->password),
-        //     'user_group_id' => 2,
-        // ]);
+        $user->create([
+            'name' => $request->name,
+            'sobrenome' => $request->sobrenome,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'user_group_id' => 3,
+        ]);
 
-        // event(new Registered($user));
+        event(new Registered($user));
 
-        // Auth::login($user);
+        Auth::login($user);
 
         return redirect(route('login'));
     }

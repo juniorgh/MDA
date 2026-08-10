@@ -18,10 +18,10 @@
 
                 <div class="profile-info">
                     <span class="status active">Ativo</span>
-                    <h1> {{ $colaborador->name }} {{ $colaborador->sobrenome }}</h1>
+                    <h1> {{ $user->name }} {{ $user->sobrenome }}</h1>
                     <p> {{ $colaborador->profissao->nome }} </p>
                     <div class="profile-meta">
-                        <span>📍 {{ $colaborador->endereco->cidade }} {{ $colaborador->endereco->estado }} </span>
+                        <span>📍 {{ $user->enderec }} {{ $user->endereco->estado }} </span>
                         <span>⭐ 4.9</span>
                         <span>127 avaliações</span>
                         <span>Membro desde {{ $colaborador->user->created_at->format('m/Y') }}</span>

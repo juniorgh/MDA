@@ -5,32 +5,34 @@
 
     <header class="topo">
         <div>
-            <h1>Olá, Lucas 👋</h1>
+            <h1>Olá, {{ $user->name }} 👋</h1>
             <p>Veja o que precisa da sua atenção hoje.</p>
         </div>
 
         <div class="avatar-mini">
             <img src="https://i.pravatar.cc/100?img=12" alt="">
-            <strong>Lucas Ferreira</strong>
+            <strong> {{ $user->name }} {{ explode(' ', $user->sobrenome)[0] }} </strong>
         </div>
     </header>
 
-    <section class="painel-acoes">
-        <h2>Informações obrigatórias</h2>
-        <p> Para plataforma funcionar perfeitamente, é necessário complementar informações</p>
+    @if(count($cadastrosFaltantes) > 0)
+        <section class="painel-acoes">
+            <h2>Informações obrigatórias</h2>
+            <p> Para plataforma funcionar perfeitamente, é necessário complementar informações</p>
 
 
-        @foreach($cadastrosFaltantes as $faltantes)
-            <div class="acao">
-                <div class="icone">📋</div>
-                <div>
-                    <strong> {{ $faltantes['slug'] }} </strong>
-                    <small> {{ $faltantes['mensagem'] }}</small>
-                </div>
-                <a href="{{ route($faltantes['classe']) }}" class="btn gold"> Add {{ $faltantes['slug'] }} </a>
-            </div>
-        @endforeach
-    </section>
+                @foreach($cadastrosFaltantes as $faltantes)
+                    <div class="acao">
+                        <div class="icone">📋</div>
+                        <div>
+                            <strong> {{ $faltantes['slug'] }} </strong>
+                            <small> {{ $faltantes['mensagem'] }}</small>
+                        </div>
+                        <a href="{{ route($faltantes['classe']) }}" class="btn gold"> Add {{ $faltantes['slug'] }} </a>
+                    </div>
+                @endforeach
+        </section>
+    @endif
 
     <section class="painel-acoes">
         <h2>Central de ações</h2>

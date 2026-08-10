@@ -13,11 +13,6 @@ return new class extends Migration
     {
         Schema::create('profissoes', function (Blueprint $table) {
             $table->id();
-
-            $table->unsignedBigInteger('user_id');
-
-            $table->foreign('user_id')->references('id')->on('users');
-
             $table->string('nome')->unique();
             $table->string('slug')->unique();
             $table->text('descricao')->nullable();
@@ -25,7 +20,7 @@ return new class extends Migration
             $table->boolean('ativo')->default(true);
             $table->unsignedInteger('ordem')->default(0);
             $table->timestamps();
-        });
+        }); 
     }
 
     /**
@@ -33,11 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-         Schema::table('profissoes', function(Blueprint $table)
-        {
-            $table->dropForeign(['user_id']);
-            $table->dropColumn('user_id');
-        });
          
         Schema::dropIfExists('profissaos');
     }

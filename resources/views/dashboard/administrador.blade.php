@@ -5,13 +5,13 @@
 
     <header class="topo">
         <div>
-            <h1>Olá, Lucas 👋</h1>
+            <h1>Olá, {{ $user->name }} 👋</h1>
             <p>Veja o que precisa da sua atenção hoje.</p>
         </div>
 
         <div class="avatar-mini">
             <img src="https://i.pravatar.cc/100?img=12" alt="">
-            <strong>Lucas Ferreira</strong>
+            <strong>{{ $user->name }} {{ explode(' ', $user->sobrenome)[0] }}</strong>
         </div>
     </header>
 

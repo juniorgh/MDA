@@ -44,12 +44,12 @@ class ProfissaoController extends Controller
      */
     public function store(Request $request)
     {
-        $utility = new Utilidade();
+        // $utility = new Utilidade();
         
 
-        $resposta = $utility->gerarTexto($request);
+        // $resposta = $utility->gerarTexto($request);
 
-        $geminiProfiDesc = $resposta->getData()->resultado;
+        // $geminiProfiDesc = $resposta->getData()->resultado;
 
         // DD($geminiProfiDesc);
 
@@ -57,18 +57,17 @@ class ProfissaoController extends Controller
 
         $request->validate($profissao->rules(null),$profissao->feedback());
 
-        $profissao->user_id = 1;
         $profissao->nome = $request->nome;
         $profissao->slug = $request->nome;
-        $profissao->descricao = $geminiProfiDesc;
+        // $profissao->descricao = $geminiProfiDesc;
+        $profissao->descricao = $request->descricao;
         $profissao->icone = $request->icone;
         $profissao->ativo = $request->ativo;
         $profissao->ordem = 0;
-        $profissao->profissao_id = $request->profissao_id;
 
         $profissao->save();
 
-        return redirect()->route('profissao.index');
+        return redirect()->route('colaborador.index');
     }
 
     /**
@@ -94,7 +93,6 @@ class ProfissaoController extends Controller
      */ 
     public function update(Request $request, Profissao $profissao)
     {
-
         $profissao = Profissao::find($profissao->id);
         $user = User::find($profissao->user_id);
 
