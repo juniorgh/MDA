@@ -79,7 +79,7 @@ class ColaboradorController extends Controller
         $user = User::find($userId);
 
         $user->update([
-            $user->user_group_id => 2
+            'user_group_id' => 2,
         ]);
 
         $request->validate($colaborador->rules(''),$colaborador->feedback());

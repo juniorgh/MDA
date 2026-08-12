@@ -14,6 +14,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::resource('servico','App\Http\Controllers\ServicoController');
+
     Route::resource('contratante','App\Http\Controllers\ContratanteController');
     Route::prefix('contratante')->group(function () {
         Route::resource('endereco','App\Http\Controllers\EnderecoController');
