@@ -9,6 +9,8 @@ use App\Models\Profissao;
 use App\Models\Utilidade;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\StoreColaboradorRequest;
+use App\Http\Requests\UpdateColaboradorRequest;
+
     
 use App\View\Components\Colaborador\ColaboradorCreateEditComponent;
 
@@ -96,7 +98,7 @@ class ColaboradorController extends Controller
         return redirect()->route('colaborador.index')->with('colaborador_create_success, colaborador cadastrado com sucesso.');
     }
 
-    public function show(ShowColaboradorRequest $colaborador){
+    public function show(Colaborador $colaborador){
 
         return match (User::userType()) {
             1 => view('colaborador.index', compact('colaborador')),
@@ -107,10 +109,9 @@ class ColaboradorController extends Controller
 
     }
 
-    public function edit(EditColaboradorRequest $colaborador)
+    public function edit(Colaborador $colaborador)
     {
         $profissoes = Profissao::all();
-        // new ColaboradorCreateEditComponent($colaborador,$profissoes);
 
         return view(
             'colaborador.edit',

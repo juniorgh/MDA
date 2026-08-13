@@ -1,0 +1,231 @@
+@extends('layout.app-public')
+@section('content')
+
+<main class="profile-page">
+
+    <div class="breadcrumb">
+        <a href="#">Colaboradores</a>
+        <span>/</span>
+        <strong>Perfil</strong>
+    </div>
+
+    <section class="profile-hero">
+            <div class="profile-main">
+                <div class="avatar-box">
+                    <img src="https://i.pravatar.cc/300?img=12" alt="Foto do colaborador">
+                    <span class="verified">✓</span>
+                </div>
+
+                <div class="profile-info">
+                    <span class="status active">Ativo</span>
+                    <h1> {{ $user->name }} {{ $user->sobrenome }}</h1>
+                    <p> {{ $colaborador->profissao->nome }} </p>
+                    <div class="profile-meta">
+                        <span>📍 {{ $user->endereco->cidade }} {{ $user->endereco->estado }} </span>
+                        <span>⭐ 4.9</span>
+                        <span>127 avaliações</span>
+                        <span>Membro desde {{ $colaborador->user->created_at->format('m/Y') }}</span>
+                    </div>
+                </div>
+            </div>
+
+        <div class="profile-actions">
+            <a href="{{ route('colaborador.edit',['colaborador' => $colaborador->id ]) }}" class="btn-gold">Editar Perfil</a>
+            <a href="#" class="btn-dark">Bloquear</a>
+        </div>
+
+    </section>  
+
+    <section class="tabs">
+        <a href="#" class="active">Visão Geral</a>
+        <a href="{{ route('profissao.index') }}">Profissões</a>
+        <a href="#">Qualificações</a>
+        <a href="#">Serviços</a>
+        <a href="#">Avaliações</a>
+        <a href="#">Documentos</a>
+    </section>
+
+    <section class="stats-grid">
+        <div class="stat-card">
+            <span>Serviços realizados</span>
+            <strong>184</strong>
+            <small>+12 este mês</small>
+        </div>
+
+        <div class="stat-card">
+            <span>Avaliação média</span>
+            <strong>4.9</strong>
+            <small>127 avaliações</small>
+        </div>
+
+        <div class="stat-card">
+            <span>Qualificações</span>
+            <strong> {{ $colaborador->qualificacoes->count() }} </strong>
+            <small> {{ $colaborador->qualificacoes->count() }} com arquivo</small>
+        </div>
+
+        <div class="stat-card">
+            <span>Taxa de aprovação</span>
+            <strong>98%</strong>
+            <small>Excelente desempenho</small>
+        </div>
+    </section>
+
+    <section class="content-grid">
+
+        <div class="left-column">
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Sobre o colaborador</h2>
+                </div>
+
+                <p>
+                    Profissional com experiência em instalações elétricas residenciais,
+                    manutenção preventiva, pequenos reparos e projetos fotovoltaicos.
+                    Atua com foco em segurança, pontualidade e acabamento.
+                </p>
+
+                <div class="tags">
+                        @foreach($colaborador->qualificacoes as $qualidades_tags)
+
+                                @php
+                                $aux_tag = explode(" ", $qualidades_tags->titulo);                            
+
+                                $tag = $aux_tag[0]; //tag isolada
+                                @endphp
+                            
+                                <span> {{ $tag }} </span>
+                        @endforeach
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+
+                    <h2> Profissão </h2>
+                </div>
+
+                <div class="list-item">
+                    <div>
+                        <strong>{{ $colaborador->profissao->nome }}</strong>
+                    </div>
+                    <span class="pill">Ativo</span>
+                </div>
+            </div>
+
+            
+                <div class="card">
+                    @foreach($colaborador->qualificacoes as $qualificacao)
+                    <div class="card-head">
+                        <h2> {{ $qualificacao->titulo }} </h2>
+                        <a href="#"> + Adicionar </a>
+                    </div>
+                    @endforeach
+                </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Últimos serviços</h2>
+                    <a href="#">Ver todos</a>
+                </div>
+
+                <div class="service-item">
+                    <strong>Instalação elétrica residencial</strong>
+                    <span>Finalizado</span>
+                    <small>Contratante: João Martins • 15/02/2026</small>
+                </div>
+
+                <div class="service-item">
+                    <strong>Troca de disjuntores</strong>
+                    <span>Finalizado</span>
+                    <small>Contratante: Ana Paula • 08/02/2026</small>
+                </div>
+            </div>
+
+        </div>
+
+        <aside class="right-column">
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Informações</h2>
+                </div>
+
+                <div class="info-row">
+                    <span>CPF</span>
+                    <strong> {{ $colaborador->cpf }}</strong>
+                </div>
+
+                <div class="info-row">
+                    <span>Telefone</span>
+                    <strong> {{ $colaborador->telefone }} </strong>
+                </div>
+
+                <div class="info-row">
+                    <span>E-mail</span>
+                    <strong>{{ $colaborador->user->email }}</strong>
+                </div>
+
+                <div class="info-row">
+                    <span>Pix</span>
+                    @if($pix_bool == true)
+                        <strong> Cadastrado </strong>
+                    @else
+                        <strong> Não cadastrado </strong>
+                    @endif
+                </div>
+
+                <div class="info-row">
+                    <span>Último acesso</span>
+                    <strong>Hoje às 09:42</strong>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Pendências</h2>
+                </div>
+
+                <div class="alert-item warning">
+                    Certificado NR-10 vence em 40 dias.
+                </div>
+
+                <div class="alert-item success">
+                    Conta verificada.
+                </div>
+
+                <div class="alert-item success">
+                    Telefone confirmado.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2>Avaliações recentes</h2>
+                </div>
+
+                <div class="review">
+                    <strong>★★★★★</strong>
+                    <p>Excelente profissional, pontual e muito caprichoso.</p>
+                    <small>Maria Souza</small>
+                </div>
+
+                <div class="review">
+                    <strong>★★★★★</strong>
+                    <p>Resolveu o problema rapidamente.</p>
+                    <small>Carlos Lima</small>
+                </div>
+            </div>
+
+        </aside>
+
+    </section>
+
+</main>
+
+@endsection
+
+
+
+

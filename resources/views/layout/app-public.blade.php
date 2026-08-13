@@ -53,5 +53,6 @@
     <script src="{{ asset('assets/js/servico/index.js') }}"></script>
     <script src="{{ asset('assets/js/servico/create.js') }}"></script>
     <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/colaborador/index.js') }}"></script>
 </body>
 </html>
