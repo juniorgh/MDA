@@ -14,16 +14,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('servico','App\Http\Controllers\ServicoController');
+    
+    Route::resource('servico-categoria','App\Http\Controllers\ServicoCategoriaController');
 
-    Route::resource('contratante','App\Http\Controllers\ContratanteController');
     Route::prefix('contratante')->group(function () {
         Route::resource('endereco','App\Http\Controllers\EnderecoController');
+        Route::resource('servico','App\Http\Controllers\ServicoController');
     });
+
+    Route::resource('contratante','App\Http\Controllers\ContratanteController');
 
 
     Route::resource('colaborador','App\Http\Controllers\ColaboradorController');
-    Route::get('colaborador/{colaborador}/show-admin',[App\Http\Controllers\ColaboradorController::class, 'show'])->name('colaborador.show-admin');
+    // Route::get('colaborador/{colaborador}/show-admin',[App\Http\Controllers\ColaboradorController::class, 'show'])->name('colaborador.show-admin');
 
     Route::prefix('colaborador')->group(function () {
         Route::resource('profissao','App\Http\Controllers\ProfissaoController');

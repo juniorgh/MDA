@@ -21,6 +21,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/css/profissao/index.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/servico/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/servico/create.css') }}">
 
 
     <link rel="stylesheet" href="{{ asset('assets/css/qualidade/index.css') }}">
@@ -28,6 +29,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/crud/create.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/crud/index.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/_partials/menu.css') }}">
+
     {{-- javascript --}}
     {{-- <script src="{{ asset('assets/js/crud/index.js' defer) }}"></script> --}}
     {{-- defer carrega no final do bory --}}
@@ -45,8 +47,11 @@
     </div>
 
     <script src="{{ asset('assets/js/_partials/menu.js') }}" defer> </script>
+    <script src="{{ asset('assets/js/crud/create.js') }}"></script>
     <script src="{{ asset('assets/js/crud/mascaras.js') }}"></script>
     <script src="{{ asset('assets/js/utilidades/index.js') }}"></script>
     <script src="{{ asset('assets/js/servico/index.js') }}"></script>
+    <script src="{{ asset('assets/js/servico/create.js') }}"></script>
+    <script src="{{ asset('assets/js/dashboard.js') }}"></script>
 </body>
 </html>

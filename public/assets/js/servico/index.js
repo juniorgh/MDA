@@ -1,8 +1,14 @@
-/* MDA — Solicitação de serviço
-   JavaScript puro, sem bibliotecas e sem variáveis globais. */
-
 (() => {
   'use strict';
+
+  const VIEW_KEY = 'mda.servico.index.view';
+
+  const normalize = (value = '') => value
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 
   const initialize = (root) => {
     if (root.dataset.initialized === 'true') return;
@@ -10,1207 +16,340 @@
 
     const $ = (selector) => root.querySelector(selector);
     const $$ = (selector) => Array.from(root.querySelectorAll(selector));
-
-    const form = $('[data-form]');
-    const title = $('[data-title]');
-    const description = $('[data-description]');
-    const filesInput = $('[data-files]');
-    const fileList = $('[data-file-list]');
-    const budgetMin = $('[data-budget-min]');
-    const budgetMax = $('[data-budget-max]');
-    const terms = $('[data-terms]');
-    const nextButton = $('[data-next]');
-    const previousButton = $('[data-previous]');
-    const publishButton = $('[data-publish]');
-    const notice = $('[data-notice]');
-    const modal = $('[data-modal]');
-
-    const initialCategory = $(
-      '[data-categories] .mda-sr__category.is-selected'
-    );
-
-    const categoryInput = $('[data-category-input]');
+    const cardsContainer = $('[data-service-cards]');
+    const cards = $$('[data-service-card]');
+    const emptyState = $('[data-empty-state]');
+    const pagination = $('[data-pagination]');
+    const filterForm = $('[data-filter-form]');
+    const filterFields = $('[data-filter-fields]');
+    const filterToggle = $('[data-filter-toggle]');
+    const searchInput = $('[data-search-input]');
+    const clearSearchButton = $('[data-clear-search]');
+    const categoryFilter = $('[data-category-filter]');
+    const orderFilter = $('[data-order-filter]');
+    const resultCount = $('[data-result-count]');
+    const resultLabel = $('[data-result-label]');
+    const modal = $('[data-confirm-modal]');
+    const confirmButton = $('[data-confirm-submit]');
+    const toast = $('[data-toast]');
 
     const state = {
-      step: 1,
-      maxStep: 1,
-
-      categoryId:
-        initialCategory?.dataset.id ||
-        categoryInput?.value ||
-        '',
-
-      category:
-        initialCategory?.dataset.name ||
-        'Categoria não selecionada',
-
-      categoryIcon:
-        initialCategory?.dataset.icon ||
-        'service',
-
-      serviceType:
-        $('[data-service-type-input]')?.value ||
-        'Instalação',
-
-      location:
-        $('[data-location-input]')?.value ||
-        'saved',
-
-      urgency:
-        $('[data-urgency-input]')?.value ||
-        'Nesta semana',
-
-      period:
-        $('[data-period-input]')?.value ||
-        'Manhã',
-
-      budgetMode:
-        $('[data-budget-mode-input]')?.value ||
-        'range',
-
-      files: []
+      status: 'todos',
+      category: 'todos',
+      search: '',
+      order: 'recentes',
+      page: 1,
+      pageSize: 4,
+      selectedCard: null,
+      confirmAction: null,
+      modalOpener: null,
+      toastTimer: null,
     };
 
-    const money = (value) => {
-      const number =
-        Number(String(value).replace(/\D/g, '')) || 0;
+    const availableCards = () => cards.filter((card) => card.dataset.removed !== 'true');
 
-      return number.toLocaleString('pt-BR');
+    const showToast = (message) => {
+      const text = $('[data-toast-text]');
+      if (!toast || !text) return;
+
+      window.clearTimeout(state.toastTimer);
+      text.textContent = message;
+      toast.hidden = false;
+      window.requestAnimationFrame(() => toast.classList.add('is-visible'));
+
+      state.toastTimer = window.setTimeout(() => {
+        toast.classList.remove('is-visible');
+        window.setTimeout(() => { toast.hidden = true; }, 220);
+      }, 3300);
     };
 
-    const showNotice = (message, success = false) => {
-      if (!notice) return;
-
-      notice.hidden = false;
-      notice.classList.toggle('is-success', success);
-
-      const icon = notice.querySelector('span');
-      const text = $('[data-notice-text]');
-
-      if (icon) {
-        icon.textContent = success ? '✓' : '!';
-      }
-
-      if (text) {
-        text.textContent = message;
-      }
-
-      if (success) {
-        window.setTimeout(() => {
-          notice.hidden = true;
-        }, 3200);
-      }
+    const closeToast = () => {
+      if (!toast) return;
+      window.clearTimeout(state.toastTimer);
+      toast.classList.remove('is-visible');
+      window.setTimeout(() => { toast.hidden = true; }, 220);
     };
 
-    const clearNotice = () => {
-      if (!notice) return;
+    const updateCounts = () => {
+      const counts = availableCards().reduce((total, card) => {
+        total.todos += 1;
+        total[card.dataset.status] = (total[card.dataset.status] || 0) + 1;
+        return total;
+      }, { todos: 0 });
 
-      notice.hidden = true;
-      notice.classList.remove('is-success');
-    };
+      $$('[data-stat]').forEach((element) => {
+        element.textContent = counts[element.dataset.stat] || 0;
+      });
 
-    const setSegmented = (container, value) => {
-      if (!container) return;
-
-      container.querySelectorAll('button').forEach((button) => {
-        const active = button.dataset.value === value;
-
-        button.classList.toggle('is-active', active);
-        button.textContent =
-          `${active ? '✓ ' : ''}${button.dataset.value}`;
+      $$('[data-tab-count]').forEach((element) => {
+        element.textContent = counts[element.dataset.tabCount] || 0;
       });
     };
 
-    const setChoices = (container, value) => {
-      if (!container) return;
+    const getFilteredCards = () => {
+      const filtered = availableCards().filter((card) => {
+        const searchable = normalize([
+          card.dataset.title,
+          card.dataset.description,
+          card.dataset.category,
+        ].join(' '));
 
-      container.querySelectorAll('button').forEach((button) => {
-        button.classList.toggle(
-          'is-selected',
-          button.dataset.value === value
-        );
+        const matchesStatus = state.status === 'todos' || card.dataset.status === state.status;
+        const matchesCategory = state.category === 'todos' || card.dataset.category === state.category;
+        const matchesSearch = !state.search || searchable.includes(normalize(state.search));
+
+        return matchesStatus && matchesCategory && matchesSearch;
+      });
+
+      const number = (card, field) => Number(card.dataset[field] || 0);
+      const date = (card) => new Date(`${card.dataset.date}T00:00:00`).getTime();
+
+      return filtered.sort((first, second) => {
+        if (state.order === 'antigos') return date(first) - date(second);
+        if (state.order === 'maior_orcamento') return number(second, 'budget') - number(first, 'budget');
+        if (state.order === 'mais_propostas') return number(second, 'proposals') - number(first, 'proposals');
+        return date(second) - date(first);
       });
     };
 
-    const locationLabel = () => {
-      if (state.location === 'remote') {
-        return 'Atendimento remoto';
+    const createPageButton = (label, page, options = {}) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.page = String(page);
+      button.setAttribute('aria-label', options.ariaLabel || `Ir para a página ${page}`);
+      button.innerHTML = label;
+
+      if (options.current) {
+        button.classList.add('is-current');
+        button.setAttribute('aria-current', 'page');
       }
 
-      if (state.location === 'other') {
-        const street =
-          $('[data-street]')?.value.trim() || '';
-
-        const number =
-          $('[data-number]')?.value.trim() || '';
-
-        return street
-          ? `${street}${number ? `, ${number}` : ''}`
-          : 'Outro endereço informado';
-      }
-
-      return 'Jardim Europa, São Paulo — SP';
+      if (options.disabled) button.disabled = true;
+      return button;
     };
 
-    const fullAddressLabel = () => {
-      if (state.location === 'remote') {
-        return 'Atendimento remoto';
-      }
-
-      if (state.location === 'saved') {
-        return 'Rua das Palmeiras, 248 • Apto 64 • Jardim Europa, São Paulo — SP';
-      }
-
-      const street =
-        $('[data-street]')?.value.trim() ||
-        'Novo endereço';
-
-      const number =
-        $('[data-number]')?.value.trim() ||
-        '';
-
-      const complement =
-        $('[data-complement]')?.value.trim() ||
-        '';
-
-      return [
-        street + (number ? `, ${number}` : ''),
-        complement
-      ]
-        .filter(Boolean)
-        .join(' • ');
-    };
-
-    const budgetLabel = (separator = ' — ') => {
-      if (state.budgetMode === 'open') {
-        return 'Aberto a propostas';
-      }
-
-      return (
-        `R$ ${money(budgetMin?.value)}` +
-        `${separator}` +
-        `R$ ${money(budgetMax?.value)}`
-      );
-    };
-
-    const updateProgress = () => {
-      const progressText = $('[data-progress-text]');
-      const progressBar = $('[data-progress-bar]');
-
-      const checks = [
-        state.categoryId,
-        title?.value.trim().length >= 5,
-        description?.value.trim().length >= 20,
-        state.location,
-        state.urgency,
-        state.budgetMode
-      ];
-
-      const completed =
-        checks.filter(Boolean).length;
-
-      const progress = Math.round(
-        (completed / checks.length) * 100
-      );
-
-      if (progressText) {
-        progressText.textContent = `${progress}%`;
-      }
-
-      if (progressBar) {
-        progressBar.style.width = `${progress}%`;
-      }
-    };
-
-    const updateSummary = () => {
-      const summaryCategory =
-        $('[data-summary-category]');
-
-      const summaryIcon =
-        $('[data-summary-icon]');
-
-      const summaryTitle =
-        $('[data-summary-title]');
-
-      const summaryType =
-        $('[data-summary-type]');
-
-      const summaryLocation =
-        $('[data-summary-location]');
-
-      const summarySchedule =
-        $('[data-summary-schedule]');
-
-      const summaryBudget =
-        $('[data-summary-budget]');
-
-      const summaryFiles =
-        $('[data-summary-files]');
-
-      if (summaryCategory) {
-        summaryCategory.textContent = state.category;
-      }
-
-      if (summaryIcon) {
-        summaryIcon.setAttribute(
-          'href',
-          `#mda-sr-i-${state.categoryIcon}`
-        );
-      }
-
-      if (summaryTitle) {
-        summaryTitle.textContent =
-          title?.value.trim() ||
-          'Título da solicitação';
-      }
-
-      if (summaryType) {
-        summaryType.textContent =
-          state.serviceType;
-      }
-
-      if (summaryLocation) {
-        summaryLocation.textContent =
-          locationLabel();
-      }
-
-      if (summarySchedule) {
-        summarySchedule.textContent =
-          `${state.urgency} • ${state.period}`;
-      }
-
-      if (summaryBudget) {
-        summaryBudget.textContent =
-          budgetLabel();
-      }
-
-      if (summaryFiles) {
-        summaryFiles.textContent =
-          state.files.length
-            ? `${state.files.length} arquivo(s)`
-            : 'Nenhum arquivo';
-      }
-
-      updateProgress();
-    };
-
-    const updateReview = () => {
-      const reviewCategory =
-        $('[data-review-category]');
-
-      const reviewTitle =
-        $('[data-review-title]');
-
-      const reviewDescription =
-        $('[data-review-description]');
-
-      const reviewFiles =
-        $('[data-review-files]');
-
-      const reviewAddress =
-        $('[data-review-address]');
-
-      const reviewUrgency =
-        $('[data-review-urgency]');
-
-      const reviewPeriod =
-        $('[data-review-period]');
-
-      const reviewBudget =
-        $('[data-review-budget]');
-
-      if (reviewCategory) {
-        reviewCategory.textContent =
-          `${state.category} • ${state.serviceType}`;
-      }
-
-      if (reviewTitle) {
-        reviewTitle.textContent =
-          title?.value.trim() || '';
-      }
-
-      if (reviewDescription) {
-        reviewDescription.textContent =
-          description?.value.trim() || '';
-      }
-
-      if (reviewFiles) {
-        reviewFiles.textContent =
-          state.files.length
-            ? `${state.files.length} arquivo(s)`
-            : 'Nenhum arquivo';
-      }
-
-      if (reviewAddress) {
-        reviewAddress.textContent =
-          fullAddressLabel();
-      }
-
-      if (reviewUrgency) {
-        reviewUrgency.textContent =
-          state.urgency;
-      }
-
-      if (reviewPeriod) {
-        reviewPeriod.textContent =
-          state.period;
-      }
-
-      if (reviewBudget) {
-        reviewBudget.textContent =
-          budgetLabel(' a ');
-      }
-    };
-
-    const showStep = (number, scroll = true) => {
-      state.step = Math.max(
-        1,
-        Math.min(4, number)
-      );
-
-      state.maxStep = Math.max(
-        state.maxStep,
-        state.step
-      );
-
-      $$('[data-panel]').forEach((panel) => {
-        panel.hidden =
-          Number(panel.dataset.panel) !== state.step;
-      });
-
-      $$('[data-step-button]').forEach((button) => {
-        const buttonStep =
-          Number(button.dataset.stepButton);
-
-        button.classList.toggle(
-          'is-current',
-          buttonStep === state.step
-        );
-
-        button.classList.toggle(
-          'is-complete',
-          buttonStep < state.step
-        );
-
-        button.disabled =
-          buttonStep > state.maxStep;
-
-        button.toggleAttribute(
-          'aria-current',
-          buttonStep === state.step
-        );
-
-        const numberElement =
-          button.querySelector(
-            '.mda-sr__step-number'
-          );
-
-        if (numberElement) {
-          numberElement.textContent =
-            buttonStep < state.step
-              ? '✓'
-              : String(buttonStep);
-        }
-      });
-
-      if (previousButton) {
-        previousButton.hidden =
-          state.step === 1;
-      }
-
-      if (nextButton) {
-        nextButton.hidden =
-          state.step === 4;
-      }
-
-      if (publishButton) {
-        publishButton.hidden =
-          state.step !== 4;
-
-        publishButton.disabled =
-          !terms?.checked;
-      }
-
-      if (state.step === 4) {
-        updateReview();
-      }
-
-      clearNotice();
-
-      if (scroll) {
-        root.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
-    };
-
-    const validateStep = () => {
-      if (state.step === 1) {
-        const invalidCategory =
-          !state.categoryId;
-
-        const invalidTitle =
-          !title ||
-          title.value.trim().length < 5;
-
-        const invalidDescription =
-          !description ||
-          description.value.trim().length < 20;
-
-        if (
-          invalidCategory ||
-          invalidTitle ||
-          invalidDescription
-        ) {
-          showNotice(
-            'Preencha a categoria, o título e uma descrição com pelo menos 20 caracteres.'
-          );
-
-          return false;
-        }
-      }
-
-      if (
-        state.step === 2 &&
-        state.location === 'other'
-      ) {
-        const required = [
-          $('[data-cep]'),
-          $('[data-street]'),
-          $('[data-number]')
-        ];
-
-        const missing = required.some(
-          (field) =>
-            !field ||
-            !field.value.trim()
-        );
-
-        if (missing) {
-          showNotice(
-            'Informe CEP, logradouro e número do novo endereço.'
-          );
-
-          return false;
-        }
-      }
-
-      if (
-        state.step === 3 &&
-        state.budgetMode === 'range'
-      ) {
-        const minimum =
-          Number(budgetMin?.value);
-
-        const maximum =
-          Number(budgetMax?.value);
-
-        if (
-          !minimum ||
-          !maximum ||
-          minimum > maximum
-        ) {
-          showNotice(
-            'Informe uma faixa válida, com o valor mínimo menor que o máximo.'
-          );
-
-          return false;
-        }
-      }
-
-      return true;
-    };
-
-    const syncFiles = () => {
-      if (
-        !filesInput ||
-        typeof DataTransfer === 'undefined'
-      ) {
+    const renderPagination = (totalPages) => {
+      pagination.replaceChildren();
+      if (totalPages <= 1) {
+        pagination.hidden = true;
         return;
       }
 
-      const transfer = new DataTransfer();
+      pagination.hidden = false;
+      pagination.append(createPageButton(
+        '<svg aria-hidden="true"><use href="#mda-si-i-chevron-left"></use></svg>',
+        Math.max(1, state.page - 1),
+        { ariaLabel: 'Página anterior', disabled: state.page === 1 },
+      ));
 
-      state.files.forEach((file) => {
-        transfer.items.add(file);
-      });
+      for (let page = 1; page <= totalPages; page += 1) {
+        pagination.append(createPageButton(String(page), page, { current: page === state.page }));
+      }
 
-      filesInput.files = transfer.files;
+      pagination.append(createPageButton(
+        '<svg aria-hidden="true"><use href="#mda-si-i-chevron-right"></use></svg>',
+        Math.min(totalPages, state.page + 1),
+        { ariaLabel: 'Próxima página', disabled: state.page === totalPages },
+      ));
     };
 
-    const renderFiles = () => {
-      if (!fileList) return;
+    const render = ({ resetPage = false } = {}) => {
+      if (resetPage) state.page = 1;
 
-      fileList.replaceChildren();
-      fileList.hidden =
-        state.files.length === 0;
+      const filtered = getFilteredCards();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+      state.page = Math.min(state.page, totalPages);
 
-      state.files.forEach((file, index) => {
-        const row =
-          document.createElement('div');
+      const start = (state.page - 1) * state.pageSize;
+      const visibleCards = filtered.slice(start, start + state.pageSize);
 
-        const icon =
-          document.createElement('span');
-
-        icon.innerHTML =
-          '<svg><use href="#mda-sr-i-file"></use></svg>';
-
-        const information =
-          document.createElement('span');
-
-        const name =
-          document.createElement('strong');
-
-        name.textContent = file.name;
-
-        const status =
-          document.createElement('small');
-
-        status.textContent =
-          'Pronto para enviar';
-
-        information.append(name, status);
-
-        const remove =
-          document.createElement('button');
-
-        remove.type = 'button';
-
-        remove.setAttribute(
-          'aria-label',
-          `Remover ${file.name}`
-        );
-
-        remove.innerHTML =
-          '<svg><use href="#mda-sr-i-trash"></use></svg>';
-
-        remove.addEventListener('click', () => {
-          state.files.splice(index, 1);
-
-          syncFiles();
-          renderFiles();
-          updateSummary();
-        });
-
-        row.append(
-          icon,
-          information,
-          remove
-        );
-
-        fileList.append(row);
+      cards.forEach((card) => { card.hidden = true; });
+      visibleCards.forEach((card) => {
+        card.hidden = false;
+        cardsContainer.insertBefore(card, emptyState);
       });
+
+      emptyState.hidden = filtered.length !== 0;
+      resultCount.textContent = filtered.length;
+      resultLabel.textContent = filtered.length === 1 ? 'serviço encontrado' : 'serviços encontrados';
+      clearSearchButton.hidden = searchInput.value.length === 0;
+
+      updateCounts();
+      renderPagination(totalPages);
     };
 
-    /*
-     * NAVEGAÇÃO PELOS INDICADORES DAS ETAPAS
-     */
-    $$('[data-step-button]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const number =
-          Number(button.dataset.stepButton);
+    const clearFilters = () => {
+      state.status = 'todos';
+      state.category = 'todos';
+      state.search = '';
+      state.order = 'recentes';
+      searchInput.value = '';
+      categoryFilter.value = 'todos';
+      orderFilter.value = 'recentes';
 
-        if (number <= state.maxStep) {
-          showStep(number);
-        }
+      $$('[data-status-tab]').forEach((tab) => {
+        const active = tab.dataset.statusTab === 'todos';
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-pressed', String(active));
       });
+
+      render({ resetPage: true });
+    };
+
+    const setView = (view) => {
+      const listView = view === 'list';
+      root.classList.toggle('is-list-view', listView);
+
+      $$('[data-view-button]').forEach((button) => {
+        const active = button.dataset.viewButton === view;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+
+      try { window.localStorage.setItem(VIEW_KEY, view); } catch (_) { /* armazenamento opcional */ }
+    };
+
+    const closeModal = () => {
+      if (!modal || modal.hidden) return;
+      modal.hidden = true;
+      document.body.style.removeProperty('overflow');
+      state.selectedCard = null;
+      state.confirmAction = null;
+      state.modalOpener?.focus();
+    };
+
+    const openModal = (button) => {
+      state.selectedCard = button.closest('[data-service-card]');
+      state.confirmAction = button.dataset.confirmAction;
+      state.modalOpener = button;
+
+      $('[data-confirm-title-output]').textContent = button.dataset.confirmTitle || 'Confirmar ação?';
+      $('[data-confirm-message-output]').textContent = button.dataset.confirmMessage || '';
+      confirmButton.textContent = button.dataset.confirmLabel || 'Confirmar';
+
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      confirmButton.focus();
+    };
+
+    const confirmAction = () => {
+      const card = state.selectedCard;
+      if (!card) return;
+
+      if (state.confirmAction === 'excluir') {
+        card.dataset.removed = 'true';
+        showToast('Rascunho removido somente desta demonstração.');
+      }
+
+      if (state.confirmAction === 'cancelar') {
+        card.dataset.status = 'cancelado';
+        const badge = card.querySelector('[data-status-badge]');
+        badge.className = 'mda-si__status is-cancelled';
+        badge.querySelector('b').textContent = 'Cancelado';
+        card.querySelector('[data-confirm-action="cancelar"]')?.remove();
+        showToast('Serviço alterado para cancelado nesta demonstração.');
+      }
+
+      closeModal();
+      render();
+    };
+
+    filterForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      state.search = searchInput.value;
+      state.category = categoryFilter.value;
+      state.order = orderFilter.value;
+      render({ resetPage: true });
     });
 
-    /*
-     * SELEÇÃO DAS CATEGORIAS
-     */
-    $$(
-      '[data-categories] .mda-sr__category'
-    ).forEach((button) => {
-      const initiallySelected =
-        button.classList.contains('is-selected');
+    let searchTimer;
+    searchInput.addEventListener('input', () => {
+      window.clearTimeout(searchTimer);
+      clearSearchButton.hidden = searchInput.value.length === 0;
+      searchTimer = window.setTimeout(() => {
+        state.search = searchInput.value;
+        render({ resetPage: true });
+      }, 180);
+    });
 
-      button.setAttribute(
-        'aria-pressed',
-        initiallySelected ? 'true' : 'false'
-      );
+    clearSearchButton.addEventListener('click', () => {
+      searchInput.value = '';
+      state.search = '';
+      searchInput.focus();
+      render({ resetPage: true });
+    });
 
-      button.addEventListener('click', () => {
-        state.categoryId =
-          button.dataset.id || '';
+    categoryFilter.addEventListener('change', () => {
+      state.category = categoryFilter.value;
+      render({ resetPage: true });
+    });
 
-        state.category =
-          button.dataset.name ||
-          'Categoria';
+    orderFilter.addEventListener('change', () => {
+      state.order = orderFilter.value;
+      render({ resetPage: true });
+    });
 
-        state.categoryIcon =
-          button.dataset.icon ||
-          'service';
+    $$('[data-clear-filters], [data-empty-clear]').forEach((button) => {
+      button.addEventListener('click', clearFilters);
+    });
 
-        if (categoryInput) {
-          categoryInput.value =
-            state.categoryId;
-        }
-
-        $$(
-          '[data-categories] .mda-sr__category'
-        ).forEach((category) => {
-          const selected =
-            category === button;
-
-          category.classList.toggle(
-            'is-selected',
-            selected
-          );
-
-          category.setAttribute(
-            'aria-pressed',
-            selected ? 'true' : 'false'
-          );
-
-          const check =
-            category.querySelector('i');
-
-          if (check) {
-            check.textContent =
-              selected ? '✓' : '';
-          }
+    $$('[data-status-tab]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        state.status = tab.dataset.statusTab;
+        $$('[data-status-tab]').forEach((item) => {
+          const active = item === tab;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-pressed', String(active));
         });
-
-        if (categoryInput) {
-          categoryInput.dispatchEvent(
-            new Event('change', {
-              bubbles: true
-            })
-          );
-        }
-
-        updateSummary();
+        render({ resetPage: true });
       });
     });
 
-    /*
-     * TIPO DO SERVIÇO
-     */
-    $$(
-      '[data-service-types] button'
-    ).forEach((button) => {
-      button.addEventListener('click', () => {
-        state.serviceType =
-          button.dataset.value || '';
-
-        const input =
-          $('[data-service-type-input]');
-
-        if (input) {
-          input.value =
-            state.serviceType;
-        }
-
-        setSegmented(
-          $('[data-service-types]'),
-          state.serviceType
-        );
-
-        updateSummary();
-      });
+    $$('[data-view-button]').forEach((button) => {
+      button.addEventListener('click', () => setView(button.dataset.viewButton));
     });
 
-    /*
-     * LOCAL DO SERVIÇO
-     */
-    $$(
-      '[data-locations] button'
-    ).forEach((button) => {
-      button.addEventListener('click', () => {
-        state.location =
-          button.dataset.value || '';
-
-        const input =
-          $('[data-location-input]');
-
-        const otherAddress =
-          $('[data-other-address]');
-
-        if (input) {
-          input.value =
-            state.location;
-        }
-
-        setChoices(
-          $('[data-locations]'),
-          state.location
-        );
-
-        if (otherAddress) {
-          otherAddress.hidden =
-            state.location !== 'other';
-        }
-
-        updateSummary();
-      });
+    filterToggle.addEventListener('click', () => {
+      const open = filterFields.classList.toggle('is-open');
+      filterToggle.setAttribute('aria-expanded', String(open));
     });
 
-    /*
-     * URGÊNCIA
-     */
-    $$(
-      '[data-urgencies] button'
-    ).forEach((button) => {
-      button.addEventListener('click', () => {
-        state.urgency =
-          button.dataset.value || '';
-
-        const input =
-          $('[data-urgency-input]');
-
-        const dateField =
-          $('[data-date-field]');
-
-        if (input) {
-          input.value =
-            state.urgency;
-        }
-
-        setChoices(
-          $('[data-urgencies]'),
-          state.urgency
-        );
-
-        if (dateField) {
-          dateField.hidden =
-            state.urgency !==
-            'Escolher uma data';
-        }
-
-        updateSummary();
-      });
+    pagination.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-page]');
+      if (!button || button.disabled) return;
+      state.page = Number(button.dataset.page);
+      render();
+      cardsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    /*
-     * PERÍODO
-     */
-    $$(
-      '[data-periods] button'
-    ).forEach((button) => {
-      button.addEventListener('click', () => {
-        state.period =
-          button.dataset.value || '';
-
-        const input =
-          $('[data-period-input]');
-
-        if (input) {
-          input.value =
-            state.period;
-        }
-
-        setSegmented(
-          $('[data-periods]'),
-          state.period
-        );
-
-        updateSummary();
-      });
+    root.addEventListener('click', (event) => {
+      const demoButton = event.target.closest('[data-demo-message]');
+      const confirmTrigger = event.target.closest('[data-confirm-action]');
+      if (demoButton) showToast(demoButton.dataset.demoMessage);
+      if (confirmTrigger) openModal(confirmTrigger);
     });
 
-    /*
-     * TIPO DE ORÇAMENTO
-     */
-    $$(
-      '[data-budget-options] button'
-    ).forEach((button) => {
-      button.addEventListener('click', () => {
-        state.budgetMode =
-          button.dataset.value || '';
+    $$('[data-confirm-close]').forEach((button) => button.addEventListener('click', closeModal));
+    confirmButton.addEventListener('click', confirmAction);
+    $('[data-toast-close]')?.addEventListener('click', closeToast);
 
-        const input =
-          $('[data-budget-mode-input]');
-
-        const fields =
-          $('[data-budget-fields]');
-
-        if (input) {
-          input.value =
-            state.budgetMode;
-        }
-
-        setChoices(
-          $('[data-budget-options]'),
-          state.budgetMode
-        );
-
-        if (fields) {
-          fields.hidden =
-            state.budgetMode !== 'range';
-        }
-
-        updateSummary();
-      });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeModal();
+        closeToast();
+      }
     });
 
-    /*
-     * CONTADOR DO TÍTULO
-     */
-    if (title) {
-      title.addEventListener('input', () => {
-        const counter =
-          $('[data-title-count]');
-
-        if (counter) {
-          counter.textContent =
-            `${title.value.length}/80`;
-        }
-
-        updateSummary();
-      });
-    }
-
-    /*
-     * CONTADOR DA DESCRIÇÃO
-     */
-    if (description) {
-      description.addEventListener(
-        'input',
-        () => {
-          const counter =
-            $('[data-description-count]');
-
-          if (counter) {
-            counter.textContent =
-              `${description.value.length}/600`;
-          }
-
-          updateSummary();
-        }
-      );
-    }
-
-    /*
-     * CAMPOS DE ORÇAMENTO
-     */
-    [budgetMin, budgetMax]
-      .filter(Boolean)
-      .forEach((input) => {
-        input.addEventListener('input', () => {
-          input.value =
-            input.value.replace(/\D/g, '');
-
-          updateSummary();
-        });
-      });
-
-    /*
-     * CAMPOS DO ENDEREÇO
-     */
-    [
-      $('[data-street]'),
-      $('[data-number]'),
-      $('[data-complement]')
-    ]
-      .filter(Boolean)
-      .forEach((input) => {
-        input.addEventListener(
-          'input',
-          updateSummary
-        );
-      });
-
-    /*
-     * MÁSCARA DO CEP
-     */
-    const cepInput = $('[data-cep]');
-
-    if (cepInput) {
-      cepInput.addEventListener(
-        'input',
-        (event) => {
-          let value =
-            event.target.value
-              .replace(/\D/g, '')
-              .slice(0, 8);
-
-          if (value.length > 5) {
-            value =
-              `${value.slice(0, 5)}-` +
-              `${value.slice(5)}`;
-          }
-
-          event.target.value = value;
-        }
-      );
-    }
-
-    /*
-     * UPLOAD DOS ARQUIVOS
-     */
-    if (filesInput) {
-      filesInput.addEventListener(
-        'change',
-        () => {
-          const selected =
-            Array.from(
-              filesInput.files || []
-            );
-
-          state.files = selected
-            .filter(
-              (file) =>
-                file.size <=
-                10 * 1024 * 1024
-            )
-            .slice(0, 5);
-
-          if (
-            selected.length !==
-            state.files.length
-          ) {
-            showNotice(
-              'Alguns arquivos foram ignorados por excederem o limite de quantidade ou tamanho.'
-            );
-          }
-
-          syncFiles();
-          renderFiles();
-          updateSummary();
-        }
-      );
-    }
-
-    /*
-     * BOTÃO AVANÇAR
-     */
-    if (nextButton) {
-      nextButton.addEventListener(
-        'click',
-        () => {
-          if (validateStep()) {
-            showStep(state.step + 1);
-          }
-        }
-      );
-    }
-
-    /*
-     * BOTÃO VOLTAR UMA ETAPA
-     */
-    if (previousButton) {
-      previousButton.addEventListener(
-        'click',
-        () => {
-          showStep(state.step - 1);
-        }
-      );
-    }
-
-    /*
-     * BOTÕES EDITAR DA REVISÃO
-     */
-    $$('[data-edit]').forEach((button) => {
-      button.addEventListener('click', () => {
-        showStep(
-          Number(button.dataset.edit)
-        );
-      });
-    });
-
-    /*
-     * SALVAR RASCUNHO
-     */
-    const draftButton = $('[data-draft]');
-
-    if (draftButton) {
-      draftButton.addEventListener(
-        'click',
-        () => {
-          const draft = {
-            categoryId: state.categoryId,
-            category: state.category,
-            serviceType: state.serviceType,
-
-            title:
-              title?.value || '',
-
-            description:
-              description?.value || '',
-
-            location: state.location,
-            urgency: state.urgency,
-            period: state.period,
-
-            budgetMode:
-              state.budgetMode,
-
-            budgetMin:
-              budgetMin?.value || '',
-
-            budgetMax:
-              budgetMax?.value || '',
-
-            savedAt:
-              new Date().toISOString()
-          };
-
-          localStorage.setItem(
-            'mda-solicitacao-rascunho',
-            JSON.stringify(draft)
-          );
-
-          showNotice(
-            'Rascunho salvo neste dispositivo.',
-            true
-          );
-        }
-      );
-    }
-
-    /*
-     * ACEITE DOS TERMOS
-     */
-    if (terms && publishButton) {
-      terms.addEventListener(
-        'change',
-        () => {
-          publishButton.disabled =
-            !terms.checked;
-        }
-      );
-    }
-
-    /*
-     * ENVIO DO FORMULÁRIO
-     */
-    if (form) {
-      form.addEventListener(
-        'submit',
-        (event) => {
-          if (
-            state.step !== 4 ||
-            !terms?.checked
-          ) {
-            event.preventDefault();
-
-            showNotice(
-              'Revise a solicitação e aceite os termos antes de publicar.'
-            );
-
-            return;
-          }
-
-          updateReview();
-
-          /*
-           * No modo de demonstração, o formulário
-           * não é enviado e o modal é aberto.
-           *
-           * Para enviar ao Laravel, coloque:
-           *
-           * data-submit-real="true"
-           * method="POST"
-           * action="{{ route('solicitacoes.store') }}"
-           *
-           * e adicione @csrf dentro do form.
-           */
-          if (
-            form.dataset.submitReal !== 'true'
-          ) {
-            event.preventDefault();
-
-            if (modal) {
-              modal.hidden = false;
-
-              document.body.style.overflow =
-                'hidden';
-            }
-          }
-        }
-      );
-    }
-
-    /*
-     * FECHAR MODAL
-     */
-    $$('[data-close]').forEach((button) => {
-      button.addEventListener('click', () => {
-        if (!modal) return;
-
-        modal.hidden = true;
-        document.body.style.overflow = '';
-      });
-    });
-
-    /*
-     * FECHAR MODAL CLICANDO FORA
-     */
-    if (modal) {
-      modal.addEventListener(
-        'click',
-        (event) => {
-          if (event.target === modal) {
-            modal.hidden = true;
-            document.body.style.overflow =
-              '';
-          }
-        }
-      );
-    }
-
-    /*
-     * BOTÃO VOLTAR DA PÁGINA
-     */
-    const backButton = $('[data-back]');
-
-    if (backButton) {
-      backButton.addEventListener(
-        'click',
-        () => {
-          if (window.history.length > 1) {
-            window.history.back();
-            return;
-          }
-
-          root.dispatchEvent(
-            new CustomEvent('mda:back', {
-              bubbles: true
-            })
-          );
-        }
-      );
-    }
-
-    /*
-     * INICIALIZAÇÃO DA TELA
-     */
-    const titleCounter =
-      $('[data-title-count]');
-
-    const descriptionCounter =
-      $('[data-description-count]');
-
-    if (titleCounter && title) {
-      titleCounter.textContent =
-        `${title.value.length}/80`;
-    }
-
-    if (
-      descriptionCounter &&
-      description
-    ) {
-      descriptionCounter.textContent =
-        `${description.value.length}/600`;
-    }
-
-    updateSummary();
-    showStep(1, false);
+    let savedView = 'grid';
+    try { savedView = window.localStorage.getItem(VIEW_KEY) || 'grid'; } catch (_) { /* armazenamento opcional */ }
+    setView(savedView === 'list' ? 'list' : 'grid');
+    render();
   };
 
-  const start = () => {
-    document
-      .querySelectorAll('[data-mda-sr]')
-      .forEach(initialize);
-  };
+  const start = () => document.querySelectorAll('[data-service-index]').forEach(initialize);
 
   if (document.readyState === 'loading') {
-    document.addEventListener(
-      'DOMContentLoaded',
-      start
-    );
+    document.addEventListener('DOMContentLoaded', start, { once: true });
   } else {
     start();
   }

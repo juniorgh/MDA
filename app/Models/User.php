@@ -125,6 +125,7 @@ class User extends Authenticatable
             }
         }
 
+
         if(!$user->colaborador)
         {
             if($userType == 2)

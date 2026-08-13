@@ -13,7 +13,7 @@ class ServicoCategoriaController extends Controller
      */
     public function index()
     {
-        //
+        return view('servico-categoria.index');
     }
 
     /**
@@ -21,7 +21,7 @@ class ServicoCategoriaController extends Controller
      */
     public function create()
     {
-        //
+        return view('servico-categoria.create');
     }
 
     /**
@@ -29,7 +29,18 @@ class ServicoCategoriaController extends Controller
      */
     public function store(StoreServicoCategoriaRequest $request)
     {
-        //
+        $servicoCategoria = new ServicoCategoria();
+
+        $servicoCategoria->nome = $request->nome;
+        $servicoCategoria->slug = $request->slug;
+        $servicoCategoria->descricao = $request->descricao;
+        $servicoCategoria->icone = $request->icone;
+        $servicoCategoria->ordem = $request->ordem;
+        $servicoCategoria->ativo = $request->ativo;
+
+        $servicoCategoria->save();
+
+        return redirect()->route('servico-categoria.index');
     }
 
     /**

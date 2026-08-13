@@ -17,7 +17,7 @@ class Servico extends Model
         'contratante_id',
         'colaborador_id',
         'servico_categoria_id',
-        'tipo',
+        'servico_tipo_id',
         'titulo',
         'descricao',
         'local_tipo',

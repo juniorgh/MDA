@@ -21,7 +21,22 @@
                     <h1> {{ $contratante->name }} {{ $contratante->sobrenome }}</h1>
                     <p> Perfil verificado • Membro desde Julho de 2026 </p>
                     <div class="profile-meta">
-                        <span>📍 {{ $contratante->endereco->cidade }} {{ $contratante->endereco->estado }} </span>
+                        
+
+                           @if ($contratante->endereco)
+                            <span>
+                                📍 {{ $contratante->endereco->cidade }}
+                                - {{ $contratante->endereco->estado }}
+                            </span>
+                        @else
+                            <span>📍 Endereço não cadastrado</span>
+
+                            <a  href="{{ route('endereco.create') }}">
+                                Cadastrar endereço
+                            </a>
+                        @endif 
+
+
                         <span>⭐ 4.9</span>
                         <span>📋 127 avaliações</span>
                         {{-- <span>Membro desde {{ $colaborador->user->created_at->format('m/Y') }}</span> --}}
@@ -29,10 +44,12 @@
                 </div>
             </div>
 
-        <div class="profile-actions">
-            <a href="{{ route('contratante.edit',['contratante' => $contratante->contratante->id ]) }}" class="btn-gold">Editar Perfil</a>
-            <a href="#" class="btn-dark">Bloquear</a>
-        </div>
+        @if($contratante->contratante)
+            <div class="profile-actions">
+                <a href="{{ route('contratante.edit',['contratante' => $contratante->contratante->id ]) }}" class="btn-gold">Editar Perfil</a>
+                <a href="#" class="btn-dark">Bloquear</a>
+            </div>
+        @endif
 
     </section>  
 
@@ -79,7 +96,7 @@
 
             <div class="card">
                 <div class="card-head">
-                    <h2>Sobre o colaborador (incluir mais um campo de descrição) </h2>
+                    <h2>Sobre o contratante (incluir mais um campo de descrição) </h2>
                 </div>
 
                 <p>
@@ -131,6 +148,7 @@
                     <h2>Informações</h2>
                 </div>
 
+                @if($contratante->contratante)
                 <div class="info-row">
                     <span>CPF</span>
                     <strong> {{ $contratante->contratante->cpf }}</strong>
@@ -160,6 +178,7 @@
                     <strong>Hoje às 09:42</strong>
                 </div>
             </div>
+            @endif
 
             <div class="card">
                 <div class="card-head">
